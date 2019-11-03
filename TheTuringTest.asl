@@ -12,9 +12,10 @@ state("theturingtest")
 startup
 {
 	vars.splitsEnabled=true;
-	vars.splitOnSector=false;
+	vars.splitOnSector=0;
 	vars.startOffset="-00:00:51.3200000";
 	vars.printFormat="[TheTuringTestASL] {0} change: {1} -> {2}";
+	settings.Add("Message",false,"Disable splits message on startup");
 	settings.Add("Offset",true,"Set Start Offset to -00:51.32");
 	settings.Add("Debug",false);
 	vars.speedAbs=0f;
@@ -22,20 +23,26 @@ startup
 init
 {
 	version="1.3 DX11";
-	vars.splits=timer.Run.Count;
+	var splits=timer.Run.Count;
 	var message="";
-	if(vars.splits<9||vars.splits>72||!settings.SplitEnabled){
+	if(splits<9||splits>78||!settings.SplitEnabled){
 		vars.splitsEnabled=false;
 		message="Autosplitting is disabled.";
 	}
-	else if(vars.splits==72){
-		vars.splitOnSector=true;
-		message="Will split on Sector change.";
+	else if(splits==72){
+		vars.splitOnSector=1;
+		message="Will split on MAIN Sector changes.";
 	}
-	else{message="Will split on Chapter change.";}
+	else if(splits==78){
+		vars.splitOnSector=2;
+		message="Will split on ALL Sector changes.";
+	}
+	else{message="Will split on Chapter changes.";}
 	
-	print("[TheTuringTestASL] "+vars.splits+" splits found. "+message);
-	MessageBox.Show(vars.splits+" splits found.\n"+
+	if(settings["Debug"])
+		print("[TheTuringTestASL] "+splits+" splits found. "+message);
+	
+	MessageBox.Show(splits+" splits found.\n"+
 		message,"TheTuringTestASL | LiveSplit",
 		MessageBoxButtons.OK,MessageBoxIcon.Information);
 	
@@ -84,30 +91,23 @@ reset{return current.chapter==0&&current.sector==-1&&current.loading;}
 split
 {
 	if(!vars.splitsEnabled) return;
-	if(vars.splitOnSector&&current.sector>old.sector){
-		//C26 OoB
-		if(old.sector==26&&current.sector>27&&current.sector<30){
+	if(vars.splitOnSector>0&&current.sector>old.sector){
+		//OoB Sector Changes
+		if( (old.sector==26&&current.sector>27&&current.sector<30)|| //C26
+			(old.sector==36&&current.sector>37&&current.sector<40)|| //D36
+			(old.sector==66&&current.sector>37&&current.sector<40) ) //G66
 			timer.CurrentSplitIndex=timer.CurrentSplitIndex+
 				(current.sector-old.sector);
-		}
-		//D36 OoB
-		else if(old.sector==36&&current.sector>37&&current.sector<40){
-			timer.CurrentSplitIndex=timer.CurrentSplitIndex+
-				(current.sector-old.sector);
-		}
-		//G66 OoB
-		else if(old.sector==66&&current.sector>37&&current.sector<40){
-			timer.CurrentSplitIndex=timer.CurrentSplitIndex+
-				(current.sector-old.sector);
-		}
+		//Story Sectors
+		else if(vars.splitOnSector==2 && current.sector>1000)
+			return current.sector>old.sector;
 		//Normal Sectors
-		else{return current.sector>old.sector&&current.sector<1000;}
+		else return current.sector>old.sector&&current.sector<1000;
 	}
 	//Final Split
 	else if(current.chapter==8&&!current.inProgress&&old.inProgress)
-	{
-		return (current.inProgress != old.inProgress);
-	}
-	else{return current.chapter>old.chapter;}
+		return current.inProgress != old.inProgress;
+	
+	else return current.chapter>old.chapter;
 }
 exit{timer.IsGameTimePaused=true;}
