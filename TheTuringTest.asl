@@ -15,7 +15,6 @@ startup
 	vars.splitOnSector=0;
 	vars.startOffset="-00:00:51.3200000";
 	vars.printFormat="[TheTuringTestASL] {0} change: {1} -> {2}";
-	settings.Add("Message",false,"Disable splits message on startup");
 	settings.Add("Offset",true,"Set Start Offset to -00:51.32");
 	settings.Add("Debug",false);
 	vars.speedAbs=0f;
@@ -28,6 +27,9 @@ init
 	if(splits<9||splits>78||!settings.SplitEnabled){
 		vars.splitsEnabled=false;
 		message="Autosplitting is disabled.";
+		MessageBox.Show(splits+" splits found.\n"+
+			message,"TheTuringTestASL | LiveSplit",
+			MessageBoxButtons.OK,MessageBoxIcon.Information);
 	}
 	else if(splits==72){
 		vars.splitOnSector=1;
@@ -41,10 +43,6 @@ init
 	
 	if(settings["Debug"])
 		print("[TheTuringTestASL] "+splits+" splits found. "+message);
-	
-	MessageBox.Show(splits+" splits found.\n"+
-		message,"TheTuringTestASL | LiveSplit",
-		MessageBoxButtons.OK,MessageBoxIcon.Information);
 	
 	if(settings["Offset"] && timer.Run.Offset.ToString()!=vars.startOffset){
 		MessageBox.Show("Timer start offset is currently set to: "+
