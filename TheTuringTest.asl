@@ -2,9 +2,10 @@ state("theturingtest")
 {
 	byte 	chapter		:0x2DB9060,0x110;
 	short 	sector		:0x2DB9060,0x114;
+	byte 	complete	:0x2DB9060,0x138;
 	bool 	loading		:0x2DB9070,0x19;
 	bool 	stream		:0x2D5ADB0,0x70,0x268,0x238,0x4E0,0x558;
-	bool 	inProgress	:0x2F18AF8,0x40,0x20,0x69F;
+	//bool 	inProgress	:0x2F18AF8,0x40,0x20,0x69F;
 	float 	xSpeed		:0x2D89400,0x0,0x3E8,0xDC;
 	float 	ySpeed		:0x2D89400,0x0,0x3E8,0xE0;
 	float 	zSpeed		:0x2D89400,0x0,0x3E8,0xE4;
@@ -103,8 +104,8 @@ split
 		else return current.sector>old.sector&&current.sector<1000;
 	}
 	//Final Split
-	else if(current.chapter==8&&!current.inProgress&&old.inProgress)
-		return current.inProgress != old.inProgress;
+	else if(current.chapter==8)
+		return old.complete==222 && current.complete==224;
 	
 	else return current.chapter>old.chapter;
 }
