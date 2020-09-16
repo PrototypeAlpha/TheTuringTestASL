@@ -105,7 +105,7 @@ split
 	}
 	//Final Split
 	else if(current.chapter==8 && old.chapter==8)
-		return old.complete==222 && current.complete==224;
+		return current.complete > old.complete;
 	
 	else return current.chapter>old.chapter;
 }
